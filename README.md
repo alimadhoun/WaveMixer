@@ -1,4 +1,4 @@
-# 🎧 MultiTrack Audio Engine
+# 🎧 WaveMixer - MultiTrack Audio Engine
 
 A professional-grade Swift Package for multi-track, gapless, sample-accurate audio playback using `AVAudioEngine`.
 
