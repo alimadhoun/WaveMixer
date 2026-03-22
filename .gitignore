@@ -1,0 +1,43 @@
+# Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace/
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# IDE
+.DS_Store
+.idea/
+*.swiftpm
+
+# Build artifacts
+*.app
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Testing
+*.xctest
+
+# Temporary files
+*.tmp
+*.log
+
+CHANGES.md
+WaveMixer_spec.md
+prompot.md
