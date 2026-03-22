@@ -64,6 +64,16 @@ struct ContentView: View {
                         .foregroundColor(.red)
                 }
 
+                // Repeat toggle
+                Toggle(isOn: Binding(
+                    get: { viewModel.shouldRepeat },
+                    set: { viewModel.toggleRepeatMode($0) }
+                )) {
+                    Label("Repeat", systemImage: "repeat")
+                }
+                .toggleStyle(.switch)
+                .padding(.horizontal)
+
                 Divider()
 
                 // Tracks List

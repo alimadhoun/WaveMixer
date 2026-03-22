@@ -21,6 +21,7 @@ final class PlayerViewModel: ObservableObject {
     @Published var duration: TimeInterval = 0
     @Published var isPlaying: Bool = false
     @Published var tracks: [TrackInfo] = []
+    @Published var shouldRepeat: Bool = false
 
     // MARK: - Properties
 
@@ -49,6 +50,17 @@ final class PlayerViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 self?.currentTime = time
+            }
+            .store(in: &cancellables)
+
+        player.completionPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                // Update UI state when playback completes
+                if self.player.completionStrategy == .stopAndSeekToStart {
+                    self.isPlaying = false
+                }
             }
             .store(in: &cancellables)
     }
@@ -162,6 +174,13 @@ final class PlayerViewModel: ObservableObject {
         if let index = tracks.firstIndex(where: { $0.id == trackID }) {
             tracks[index].volume = volume
         }
+    }
+
+    // MARK: - Completion Strategy
+
+    func toggleRepeatMode(_ enabled: Bool) {
+        shouldRepeat = enabled
+        player.completionStrategy = enabled ? .repeatFromStart : .stopAndSeekToStart
     }
 
     // MARK: - Formatting

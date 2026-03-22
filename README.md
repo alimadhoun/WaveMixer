@@ -87,6 +87,32 @@ player.currentTimePublisher
     .store(in: &cancellables)
 ```
 
+### Playback Completion Handling
+
+Control what happens when playback reaches the end:
+
+```swift
+// Stop and reset to beginning (default)
+player.completionStrategy = .stopAndSeekToStart
+
+// Loop playback automatically
+player.completionStrategy = .repeatFromStart
+
+// Get notified when playback completes
+player.completionPublisher
+    .sink {
+        print("Playback completed!")
+        // Update UI, play next track, show completion screen, etc.
+    }
+    .store(in: &cancellables)
+```
+
+**Completion Strategies:**
+- `.stopAndSeekToStart` - Stops playback and resets to 0:00 (default behavior)
+- `.repeatFromStart` - Automatically loops playback from the beginning
+
+The completion publisher fires regardless of the strategy, allowing you to track when the audio finishes.
+
 ### Multiple Tracks
 
 ```swift
@@ -203,9 +229,10 @@ The package includes a complete iOS demo app showing:
 - Seek slider with time display
 - Skip forward/backward (±10s)
 - Per-track volume sliders
+- Repeat mode toggle
 - Real-time playback time updates
 
-See `Examples/iOSDemoApp/` for the full implementation.
+See `WaveMixerExample/` for the full implementation.
 
 ## 🎛 API Reference
 
@@ -238,6 +265,16 @@ var currentTime: TimeInterval { get }
 var duration: TimeInterval { get }
 var isPlaying: Bool { get }
 var currentTimePublisher: AnyPublisher<TimeInterval, Never> { get }
+var completionPublisher: AnyPublisher<Void, Never> { get }
+var completionStrategy: CompletionStrategy { get set }
+```
+
+#### Completion Strategy
+```swift
+enum CompletionStrategy {
+    case stopAndSeekToStart  // Stop and reset to beginning (default)
+    case repeatFromStart     // Loop playback automatically
+}
 ```
 
 #### Volume Control

@@ -13,6 +13,16 @@ import Combine
 /// Provides a clean, high-level API for managing tracks and controlling playback.
 public final class MultiTrackPlayer {
 
+    // MARK: - Types
+
+    /// Defines what happens when playback reaches the end
+    public enum CompletionStrategy {
+        /// Stop playback and seek to the beginning
+        case stopAndSeekToStart
+        /// Repeat playback from the beginning
+        case repeatFromStart
+    }
+
     // MARK: - Properties
 
     private let engineManager: AudioEngineManager
@@ -23,6 +33,11 @@ public final class MultiTrackPlayer {
     private var tracks: [UUID: Track] = [:]
     private var timeObserverTimer: Timer?
     private let currentTimeSubject = CurrentValueSubject<TimeInterval, Never>(0)
+    private let completionSubject = PassthroughSubject<Void, Never>()
+    private var hasCompletedPlayback = false
+
+    /// The strategy to use when playback completes
+    public var completionStrategy: CompletionStrategy = .stopAndSeekToStart
 
     // MARK: - Public Properties
 
@@ -31,9 +46,15 @@ public final class MultiTrackPlayer {
         return currentTimeSubject.eraseToAnyPublisher()
     }
 
-    /// The current playback time in seconds
+    /// Publisher that fires when playback completes
+    public var completionPublisher: AnyPublisher<Void, Never> {
+        return completionSubject.eraseToAnyPublisher()
+    }
+
+    /// The current playback time in seconds (clamped to duration)
     public var currentTime: TimeInterval {
-        return masterClock.currentTime
+        let time = masterClock.currentTime
+        return min(time, duration)
     }
 
     /// The total duration of all tracks
@@ -100,6 +121,7 @@ public final class MultiTrackPlayer {
     /// Starts or resumes playback
     public func play() {
         do {
+            hasCompletedPlayback = false
             try transportController.play()
         } catch {
             print("Failed to start playback: \(error)")
@@ -124,6 +146,7 @@ public final class MultiTrackPlayer {
     public func seek(to time: TimeInterval) {
         do {
             let clampedTime = max(0, min(time, duration))
+            hasCompletedPlayback = false
             try transportController.seek(to: clampedTime)
             currentTimeSubject.send(clampedTime)
         } catch {
@@ -184,7 +207,39 @@ public final class MultiTrackPlayer {
             repeats: true
         ) { [weak self] _ in
             guard let self = self, self.isPlaying else { return }
-            self.currentTimeSubject.send(self.currentTime)
+
+            let currentTime = self.currentTime
+            let duration = self.duration
+
+            // Send current time update
+            self.currentTimeSubject.send(currentTime)
+
+            // Check if playback has completed
+            if currentTime >= duration && duration > 0 && !self.hasCompletedPlayback {
+                self.hasCompletedPlayback = true
+                self.handlePlaybackCompletion()
+            }
+        }
+    }
+
+    /// Handles playback completion based on the completion strategy
+    private func handlePlaybackCompletion() {
+        // Notify observers
+        completionSubject.send()
+
+        // Execute completion strategy
+        switch completionStrategy {
+        case .stopAndSeekToStart:
+            stop()
+
+        case .repeatFromStart:
+            do {
+                try transportController.seek(to: 0)
+                hasCompletedPlayback = false
+            } catch {
+                print("Failed to repeat playback: \(error)")
+                stop()
+            }
         }
     }
 }
