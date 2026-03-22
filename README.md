@@ -326,7 +326,9 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## 📄 License
 
-This project is available under the MIT License.
+This project is available under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2026 Ali Madhoun
 
 ## 🙏 Acknowledgments
 
