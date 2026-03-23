@@ -42,7 +42,7 @@ Or add it through Xcode:
 ### Basic Usage
 
 ```swift
-import MultiTrackAudioEngine
+import WaveMixer
 
 // Create the player
 let player = MultiTrackPlayer()
